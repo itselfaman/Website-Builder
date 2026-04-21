@@ -16,7 +16,8 @@ function LoginModal({ open, onClose }) {
             const result = await signInWithPopup(auth, provider)
             console.log("Firebase success:", result.user)
 
-            const BASE_URL = "http://127.0.0.1:8000"
+            // ✅ UPDATED BASE URL (IMPORTANT)
+            const BASE_URL = "https://website-builder-1-xgq2.onrender.com"
             console.log("SERVER URL:", BASE_URL)
 
             const response = await axios.post(
