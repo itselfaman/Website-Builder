@@ -1,51 +1,59 @@
 import axios from 'axios'
 import React, { useEffect, useState, useRef } from 'react'
-import { useParams } from 'react-router-dom'
 import { serverUrl } from '../App'
-import { Send, X } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
-import Editor from '@monaco-editor/react';
+import { Send } from 'lucide-react'
 
 function WebsiteEditor() {
-    const { id } = useParams()
 
-    const [website, setWebsite] = useState({
-        title: "Generated Website",
-        deployed: false
-    })
     const [code, setCode] = useState("")
     const [messages, setMessages] = useState([])
     const [prompt, setPrompt] = useState("")
     const iframeRef = useRef(null)
     const [loading, setLoading] = useState(false)
 
-    // ✅ GENERATE WEBSITE
+    // 🔥 GENERATE FUNCTION
     const handleGenerate = async () => {
-        if (!prompt) return
+
+        console.log("BUTTON CLICKED")
+
+        if (!prompt.trim()) {
+            alert("Enter prompt first 😅")
+            return
+        }
+
         setLoading(true)
 
         try {
+            console.log("API CALL START")
+
             const res = await axios.post(
                 `${serverUrl}/api/website/generate`,
                 { prompt },
                 { withCredentials: true }
             )
 
-            console.log(res)
+            console.log("RESPONSE:", res)
 
-            setCode(res.data.code || "<h1>No Code Generated</h1>")
-            setMessages((m) => [...m, { role: "user", content: prompt }])
-            setMessages((m) => [...m, { role: "ai", content: "Website generated successfully 🚀" }])
+            const generatedCode = res.data.code || "<h1>No Code Generated</h1>"
+
+            setCode(generatedCode)
+
+            setMessages((prev) => [
+                ...prev,
+                { role: "user", content: prompt },
+                { role: "ai", content: "Website generated successfully 🚀" }
+            ])
 
             setPrompt("")
         } catch (err) {
-            console.log(err)
+            console.log("ERROR:", err)
+            alert("API Error ❌")
         }
 
         setLoading(false)
     }
 
-    // ✅ PREVIEW UPDATE
+    // 🔥 PREVIEW UPDATE
     useEffect(() => {
         if (!iframeRef.current || !code) return
 
@@ -83,16 +91,17 @@ function WebsiteEditor() {
 
                 <div className='p-3 border-t border-white/10 flex gap-2'>
                     <input
-                        className='flex-1 px-3 py-2 bg-white/10 rounded'
+                        className='flex-1 px-3 py-2 bg-white/10 rounded outline-none'
                         placeholder='Describe your website...'
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
                     />
+
                     <button
-                        onClick={handleGenerate}
-                        className='bg-white text-black px-3 rounded'
+                        onClick={() => handleGenerate()}
+                        className='bg-white text-black px-4 rounded'
                     >
-                        <Send size={14} />
+                        {loading ? "..." : <Send size={14} />}
                     </button>
                 </div>
             </div>
@@ -104,11 +113,17 @@ function WebsiteEditor() {
                     Live Preview
                 </div>
 
-                <iframe
-                    ref={iframeRef}
-                    className='flex-1 bg-white'
-                    sandbox='allow-scripts allow-same-origin'
-                />
+                {!code ? (
+                    <div className='flex-1 flex items-center justify-center text-gray-400'>
+                        Generate a website to preview 🚀
+                    </div>
+                ) : (
+                    <iframe
+                        ref={iframeRef}
+                        className='flex-1 bg-white'
+                        sandbox='allow-scripts allow-same-origin'
+                    />
+                )}
             </div>
 
         </div>
