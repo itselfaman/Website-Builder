@@ -6,6 +6,7 @@ import { Send } from 'lucide-react'
 function WebsiteEditor() {
 
     const [code, setCode] = useState("")
+    const [files, setFiles] = useState([]) // 🔥 NEW
     const [messages, setMessages] = useState([])
     const [prompt, setPrompt] = useState("")
     const iframeRef = useRef(null)
@@ -33,10 +34,17 @@ function WebsiteEditor() {
             )
 
             console.log("RESPONSE:", res)
+            console.log("SERVER DATA:", res.data)
 
-            const generatedCode = res.data.code || "<h1>No Code Generated</h1>"
+            // 🔥 FIX HERE (IMPORTANT)
+            const filesData = res.data.files
 
-            setCode(generatedCode)
+            if (filesData && filesData.length > 0) {
+                setFiles(filesData)
+                setCode(filesData[0].content) // preview first file
+            } else {
+                setCode("<h1>No Code Generated</h1>")
+            }
 
             setMessages((prev) => [
                 ...prev,
@@ -45,9 +53,11 @@ function WebsiteEditor() {
             ])
 
             setPrompt("")
+
         } catch (err) {
-            console.log("ERROR:", err)
-            alert("API Error ❌")
+            console.log("FULL ERROR:", err)
+            console.log("SERVER ERROR:", err.response?.data)
+            alert(err.response?.data?.message || "API Error ❌")
         }
 
         setLoading(false)
@@ -98,7 +108,7 @@ function WebsiteEditor() {
                     />
 
                     <button
-                        onClick={() => handleGenerate()}
+                        onClick={handleGenerate}
                         className='bg-white text-black px-4 rounded'
                     >
                         {loading ? "..." : <Send size={14} />}
