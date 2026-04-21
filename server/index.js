@@ -17,7 +17,7 @@ if (!JWT_SECRET) {
 }
 
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 
 // ensure JWT secret is available early
 if (!process.env.JWT_SECRET) {
@@ -29,7 +29,7 @@ if (!process.env.JWT_SECRET) {
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://website-frontend-7ho3.onrender.com",
     credentials: true
 }));
 
@@ -39,6 +39,6 @@ app.use("/api/website",websiteRouter)
 app.use("/api/billing",billingRouter)
 
 app.listen(port, () => {
-    console.log("Server Started");
+    console.log(`Server running on port ${port}`);
     connectDb();
 })
