@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import Website from "../models/website.model.js";
 import extractJson from "../utils/extractJson.js";
 
+// ✅ GENERATE WEBSITE
 export const generateWebsite = async (req, res) => {
   try {
     const { prompt } = req.body;
@@ -11,7 +12,7 @@ export const generateWebsite = async (req, res) => {
       return res.status(400).json({ message: "prompt is required" });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user?._id);
     if (!user) {
       return res.status(400).json({ message: "user not found" });
     }
@@ -20,210 +21,80 @@ export const generateWebsite = async (req, res) => {
       return res.status(400).json({ message: "Not enough credits" });
     }
 
-    // 🔥 STEP 1: TECH DETECTION
     const userPrompt = prompt.toLowerCase();
 
     let tech = "html";
-
     if (userPrompt.includes("mern")) tech = "mern";
-    else if (userPrompt.includes("spring")) tech = "spring";
-    else if (userPrompt.includes("flask")) tech = "flask";
-    else if (userPrompt.includes("django")) tech = "django";
     else if (userPrompt.includes("react")) tech = "react";
-    else if (userPrompt.includes("angular")) tech = "angular";
 
-    // 🔥 STEP 2: BASE RULES
     const baseRules = `
 YOU ARE A SENIOR FULL STACK ENGINEER.
+RETURN STRICT JSON ONLY.
 
-STRICT RULES:
-- Generate code EXACTLY in requested tech
-- DO NOT fallback to HTML unless asked
-- ALWAYS create proper folder structure
-- ALWAYS separate files
-
-OUTPUT FORMAT (STRICT JSON):
+FORMAT:
 {
   "message": "Project generated",
   "files": [
     {
-      "path": "/folder/file.ext",
-      "content": "code here"
+      "path": "/file",
+      "content": "code"
     }
   ]
 }
 `;
 
-    // 🔥 STEP 3: DYNAMIC PROMPT
-    let dynamicPrompt = "";
+    let dynamicPrompt = `${baseRules}\nUSER REQUEST:\n${prompt}`;
 
-    if (tech === "mern") {
-      dynamicPrompt = `
-${baseRules}
-
-Create a FULL MERN stack project.
-
-Stack:
-- MongoDB
-- Express
-- React
-- Node.js
-
-Structure:
-/backend
-  server.js
-  routes/
-  models/
-/frontend
-  src/
-    App.jsx
-    components/
-
-Features:
-- REST API
-- CRUD operations
-- React UI connected to backend
-
-USER REQUEST:
-${prompt}
-`;
-    }
-
-    else if (tech === "react") {
-      dynamicPrompt = `
-${baseRules}
-
-Create a React project.
-
-Structure:
-/src
-  /components
-    Navbar.jsx
-    Hero.jsx
-    Footer.jsx
-  App.jsx
-
-Use:
-- JSX
-- Functional components
-- Tailwind CSS
-
-USER REQUEST:
-${prompt}
-`;
-    }
-
-    else if (tech === "spring") {
-      dynamicPrompt = `
-${baseRules}
-
-Create a Spring Boot backend with React frontend.
-
-Structure:
-/backend (Java Spring Boot)
-/frontend (React)
-
-Include:
-- Controller
-- Service
-- Entity
-- REST API
-
-USER REQUEST:
-${prompt}
-`;
-    }
-
-    else if (tech === "flask") {
-      dynamicPrompt = `
-${baseRules}
-
-Create a Flask project.
-
-Structure:
-/backend
-  app.py
-/templates
-  index.html
-
-Include:
-- API routes
-- Basic frontend
-
-USER REQUEST:
-${prompt}
-`;
-    }
-
-    else {
-      dynamicPrompt = `
-${baseRules}
-
-Create a website using HTML, CSS, JS.
-
-Structure:
-index.html
-style.css
-script.js
-
-USER REQUEST:
-${prompt}
-`;
-    }
-
-    console.log("🚀 Prompt:", dynamicPrompt);
-
-    // 🔥 STEP 4: AI CALL
-    let raw = "";
-    let parsed = null;
-
-    for (let i = 0; i < 2 && !parsed; i++) {
-      raw = await generateResponse(dynamicPrompt);
-
-      try {
-        parsed = await extractJson(raw);
-      } catch (err) {
-        console.log("Parse error:", err);
-      }
-
-      if (!parsed) {
-        raw = await generateResponse(dynamicPrompt + "\nRETURN ONLY JSON.");
-        try {
-          parsed = await extractJson(raw);
-        } catch {}
-      }
-    }
+    let raw = await generateResponse(dynamicPrompt);
+    let parsed = await extractJson(raw);
 
     if (!parsed || !parsed.files) {
-      return res.status(400).json({
-        message: "AI returned invalid response"
-      });
+      return res.status(400).json({ message: "AI failed" });
     }
 
-    // 🔥 STEP 5: SAVE DATA
     const website = await Website.create({
       user: user._id,
       title: prompt.slice(0, 60),
       latestCode: JSON.stringify(parsed.files),
-      conversation: [
-        { role: "user", content: prompt },
-        { role: "ai", content: parsed.message || "Generated" }
-      ]
     });
 
     user.credits -= 50;
     await user.save();
 
-    return res.status(201).json({
+    res.json({
       websiteId: website._id,
       files: parsed.files,
-      remainingCredits: user.credits
     });
 
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Generate website server error"
-    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ✅ GET ALL
+export const getAll = async (req, res) => {
+  try {
+    const websites = await Website.find().sort({ createdAt: -1 });
+    res.json(websites);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ✅ GET BY ID
+export const getWebsiteById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const website = await Website.findById(id);
+
+    if (!website) {
+      return res.status(404).json({ message: "Website not found" });
+    }
+
+    res.json(website);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
