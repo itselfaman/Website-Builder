@@ -28,6 +28,8 @@ function WebsiteEditor() {
                 { withCredentials: true }
             )
 
+            console.log("FILES:", res.data.files)
+
             console.log("FULL RESPONSE:", res.data)
 
             const filesData = res.data.files || []
