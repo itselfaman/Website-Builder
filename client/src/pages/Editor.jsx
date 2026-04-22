@@ -146,4 +146,4 @@ function WebsiteEditor() {
     )
 }
 
-export default Editor
+export default WebsiteEditor
