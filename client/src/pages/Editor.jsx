@@ -12,7 +12,6 @@ function WebsiteEditor() {
     const iframeRef = useRef(null)
     const [loading, setLoading] = useState(false)
 
-    // 🔥 GENERATE FUNCTION
     const handleGenerate = async () => {
 
         if (!prompt.trim()) {
@@ -29,22 +28,24 @@ function WebsiteEditor() {
                 { withCredentials: true }
             )
 
-            console.log("SERVER DATA:", res.data)
+            console.log("FILES:", res.data.files)
 
-            // ✅ FILES EXTRACT
             const filesData = res.data.files || []
-
             setFiles(filesData)
 
-            // 🔥 FIND index.html (IMPORTANT FIX)
+            // 🔥 DEBUG: check all paths
+            filesData.forEach(f => console.log("FILE:", f.path))
+
+            // ✅ BETTER MATCH
             const htmlFile = filesData.find(file =>
-                file.path.toLowerCase().includes("index.html")
+                file.path.toLowerCase().endsWith(".html")
             )
 
             if (htmlFile) {
+                console.log("HTML FOUND:", htmlFile.path)
                 setCode(htmlFile.content)
             } else if (filesData.length > 0) {
-                // fallback → first file
+                console.log("NO HTML → using first file")
                 setCode(filesData[0].content)
             } else {
                 setCode("<h1>No Code Generated</h1>")
@@ -59,18 +60,17 @@ function WebsiteEditor() {
             setPrompt("")
 
         } catch (err) {
-            console.log("FULL ERROR:", err)
-            console.log("SERVER ERROR:", err.response?.data)
-
+            console.log("ERROR:", err.response?.data)
             alert(err.response?.data?.message || "API Error ❌")
         }
 
         setLoading(false)
     }
 
-    // 🔥 PREVIEW UPDATE
     useEffect(() => {
         if (!iframeRef.current || !code) return
+
+        console.log("SETTING IFRAME CODE")
 
         const blob = new Blob([code], { type: "text/html" })
         const url = URL.createObjectURL(blob)
@@ -83,7 +83,6 @@ function WebsiteEditor() {
     return (
         <div className='h-screen w-screen flex bg-black text-white'>
 
-            {/* LEFT PANEL */}
             <div className='w-[350px] border-r border-white/10 flex flex-col'>
 
                 <div className='p-4 font-semibold border-b border-white/10'>
@@ -121,7 +120,6 @@ function WebsiteEditor() {
                 </div>
             </div>
 
-            {/* RIGHT PREVIEW */}
             <div className='flex-1 flex flex-col'>
 
                 <div className='h-12 flex items-center px-4 border-b border-white/10'>
