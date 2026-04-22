@@ -7,6 +7,7 @@ import extractJson from "../utils/extractJson.js";
 export const generateWebsite = async (req, res) => {
   try {
     const { prompt } = req.body;
+    console.log("welcome generate")
 
     if (!prompt) {
       return res.status(400).json({ message: "prompt is required" });
@@ -14,7 +15,7 @@ export const generateWebsite = async (req, res) => {
 
     const user = await User.findById(req.user?._id);
     if (!user) {
-      return res.status(400).json({ message: "user not found" });
+      return res.status(400).json({ message: "user not found welcome" });
     }
 
     if (user.credits < 50) {
