@@ -28,27 +28,36 @@ function WebsiteEditor() {
                 { withCredentials: true }
             )
 
-            console.log("FILES:", res.data.files)
+            console.log("FULL RESPONSE:", res.data)
 
             const filesData = res.data.files || []
             setFiles(filesData)
 
-            // 🔥 DEBUG: check all paths
+            // 🔍 DEBUG
             filesData.forEach(f => console.log("FILE:", f.path))
 
-            // ✅ BETTER MATCH
+            // ✅ FIND HTML FILE
             const htmlFile = filesData.find(file =>
-                file.path.toLowerCase().endsWith(".html")
+                file.path.toLowerCase().includes(".html")
             )
 
             if (htmlFile) {
-                console.log("HTML FOUND:", htmlFile.path)
+                console.log("✅ HTML FOUND:", htmlFile.path)
                 setCode(htmlFile.content)
-            } else if (filesData.length > 0) {
-                console.log("NO HTML → using first file")
-                setCode(filesData[0].content)
             } else {
-                setCode("<h1>No Code Generated</h1>")
+                console.log("❌ NO HTML FILE FOUND")
+
+                // ⚠️ FALLBACK MESSAGE
+                setCode(`
+                    <html>
+                        <body style="font-family:sans-serif;text-align:center;padding-top:50px;">
+                            <h2>⚠️ Preview not available</h2>
+                            <p>This project is not HTML based</p>
+                            <p>👉 Try this prompt:</p>
+                            <code>Create a website using HTML CSS JS with index.html</code>
+                        </body>
+                    </html>
+                `)
             }
 
             setMessages((prev) => [
@@ -70,7 +79,7 @@ function WebsiteEditor() {
     useEffect(() => {
         if (!iframeRef.current || !code) return
 
-        console.log("SETTING IFRAME CODE")
+        console.log("⚡ RENDERING IN IFRAME")
 
         const blob = new Blob([code], { type: "text/html" })
         const url = URL.createObjectURL(blob)
@@ -83,6 +92,7 @@ function WebsiteEditor() {
     return (
         <div className='h-screen w-screen flex bg-black text-white'>
 
+            {/* LEFT PANEL */}
             <div className='w-[350px] border-r border-white/10 flex flex-col'>
 
                 <div className='p-4 font-semibold border-b border-white/10'>
@@ -120,6 +130,7 @@ function WebsiteEditor() {
                 </div>
             </div>
 
+            {/* RIGHT PANEL */}
             <div className='flex-1 flex flex-col'>
 
                 <div className='h-12 flex items-center px-4 border-b border-white/10'>
