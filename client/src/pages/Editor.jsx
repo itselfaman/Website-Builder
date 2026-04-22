@@ -30,31 +30,46 @@ function WebsiteEditor() {
 
             console.log("FILES:", res.data.files)
 
-            console.log("FULL RESPONSE:", res.data)
-
             const filesData = res.data.files || []
             setFiles(filesData)
 
             // 🔍 DEBUG
             filesData.forEach(f => console.log("FILE:", f.path))
 
-            // ✅ FIND HTML FILE
-            const htmlFile = filesData.find(file =>
-                file.path.toLowerCase().includes(".html")
-            )
+            // 🔥 FIND FILES
+            const htmlFile = filesData.find(f => f.path.includes("index.html"))
+            const cssFile = filesData.find(f => f.path.endsWith(".css"))
+            const jsFile = filesData.find(f => f.path.endsWith(".js"))
 
             if (htmlFile) {
-                console.log("✅ HTML FOUND:", htmlFile.path)
-                setCode(htmlFile.content)
-            } else {
-                console.log("❌ NO HTML FILE FOUND")
 
-                // ⚠️ FALLBACK MESSAGE
+                let finalHtml = htmlFile.content
+
+                // ✅ CSS inject
+                if (cssFile) {
+                    finalHtml = finalHtml.replace(
+                        "</head>",
+                        `<style>${cssFile.content}</style></head>`
+                    )
+                }
+
+                // ✅ JS inject
+                if (jsFile) {
+                    finalHtml = finalHtml.replace(
+                        "</body>",
+                        `<script>${jsFile.content}</script></body>`
+                    )
+                }
+
+                setCode(finalHtml)
+
+            } else {
+                // ❌ fallback
                 setCode(`
                     <html>
                         <body style="font-family:sans-serif;text-align:center;padding-top:50px;">
                             <h2>⚠️ Preview not available</h2>
-                            <p>This project is not HTML based</p>
+                            <p>No HTML file found</p>
                             <p>👉 Try this prompt:</p>
                             <code>Create a website using HTML CSS JS with index.html</code>
                         </body>
@@ -81,7 +96,7 @@ function WebsiteEditor() {
     useEffect(() => {
         if (!iframeRef.current || !code) return
 
-        console.log("⚡ RENDERING IN IFRAME")
+        console.log("⚡ RENDERING")
 
         const blob = new Blob([code], { type: "text/html" })
         const url = URL.createObjectURL(blob)
