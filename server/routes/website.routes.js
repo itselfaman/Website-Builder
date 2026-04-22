@@ -1,4 +1,6 @@
 import express from "express";
+import isAuth from "../middlewares/isAuth.js";   // ✅ ADD THIS
+
 import {
   generateWebsite,
   getWebsiteById,
@@ -7,8 +9,10 @@ import {
 
 const websiteRouter = express.Router();
 
-websiteRouter.post("/generate", generateWebsite);
-websiteRouter.get("/get-by-id/:id", getWebsiteById);
-websiteRouter.get("/get-all", getAll);
+// ✅ FIX: middleware add karo
+websiteRouter.post("/generate", isAuth, generateWebsite);
+
+websiteRouter.get("/get-by-id/:id", isAuth, getWebsiteById);
+websiteRouter.get("/get-all", isAuth, getAll);
 
 export default websiteRouter;

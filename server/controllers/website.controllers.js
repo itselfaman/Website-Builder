@@ -13,7 +13,9 @@ export const generateWebsite = async (req, res) => {
       return res.status(400).json({ message: "prompt is required" });
     }
 
-    const user = await User.findById(req.user?._id);
+    // const user = await User.findById(req.user?._id);
+    console.log("REQ.USER:", req.user);
+    const user = req.user;
     if (!user) {
       return res.status(400).json({ message: "user not found welcome" });
     }
