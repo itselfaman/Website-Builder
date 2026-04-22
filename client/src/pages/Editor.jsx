@@ -6,7 +6,7 @@ import { Send } from 'lucide-react'
 function WebsiteEditor() {
 
     const [code, setCode] = useState("")
-    const [files, setFiles] = useState([]) // 🔥 NEW
+    const [files, setFiles] = useState([])
     const [messages, setMessages] = useState([])
     const [prompt, setPrompt] = useState("")
     const iframeRef = useRef(null)
@@ -14,8 +14,6 @@ function WebsiteEditor() {
 
     // 🔥 GENERATE FUNCTION
     const handleGenerate = async () => {
-
-        console.log("BUTTON CLICKED")
 
         if (!prompt.trim()) {
             alert("Enter prompt first 😅")
@@ -25,23 +23,29 @@ function WebsiteEditor() {
         setLoading(true)
 
         try {
-            console.log("API CALL START")
-
             const res = await axios.post(
                 `${serverUrl}/api/website/generate`,
                 { prompt },
                 { withCredentials: true }
             )
 
-            console.log("RESPONSE:", res)
             console.log("SERVER DATA:", res.data)
 
-            // 🔥 FIX HERE (IMPORTANT)
-            const filesData = res.data.files
+            // ✅ FILES EXTRACT
+            const filesData = res.data.files || []
 
-            if (filesData && filesData.length > 0) {
-                setFiles(filesData)
-                setCode(filesData[0].content) // preview first file
+            setFiles(filesData)
+
+            // 🔥 FIND index.html (IMPORTANT FIX)
+            const htmlFile = filesData.find(file =>
+                file.path.toLowerCase().includes("index.html")
+            )
+
+            if (htmlFile) {
+                setCode(htmlFile.content)
+            } else if (filesData.length > 0) {
+                // fallback → first file
+                setCode(filesData[0].content)
             } else {
                 setCode("<h1>No Code Generated</h1>")
             }
@@ -57,6 +61,7 @@ function WebsiteEditor() {
         } catch (err) {
             console.log("FULL ERROR:", err)
             console.log("SERVER ERROR:", err.response?.data)
+
             alert(err.response?.data?.message || "API Error ❌")
         }
 
@@ -132,6 +137,7 @@ function WebsiteEditor() {
                         ref={iframeRef}
                         className='flex-1 bg-white'
                         sandbox='allow-scripts allow-same-origin'
+                        title="preview"
                     />
                 )}
             </div>
@@ -140,4 +146,4 @@ function WebsiteEditor() {
     )
 }
 
-export default WebsiteEditor
+export default Editor
