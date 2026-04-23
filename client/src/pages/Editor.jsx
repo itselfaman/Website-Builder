@@ -6,7 +6,6 @@ import { Send } from 'lucide-react'
 function WebsiteEditor() {
 
     const [code, setCode] = useState("")
-    const [files, setFiles] = useState([])
     const [messages, setMessages] = useState([])
     const [prompt, setPrompt] = useState("")
     const iframeRef = useRef(null)
@@ -28,88 +27,58 @@ function WebsiteEditor() {
                 { withCredentials: true }
             )
 
-            console.log("FILES:", res.data.files)
+            const files = res.data.files || []
 
-            const filesData = res.data.files || []
-            setFiles(filesData)
+            const htmlFile = files.find(f => f.path.includes("html"))
+            const cssFile = files.find(f => f.path.endsWith(".css"))
+            const jsFile = files.find(f => f.path.endsWith(".js"))
 
-            // 🔍 DEBUG
-            filesData.forEach(f => console.log("FILE:", f.path))
+            let finalHtml = htmlFile?.content || "<h1>No HTML</h1>"
 
-            // 🔥 FIND FILES
-            const htmlFile = filesData.find(f => f.path.includes("index.html"))
-            const cssFile = filesData.find(f => f.path.endsWith(".css"))
-            const jsFile = filesData.find(f => f.path.endsWith(".js"))
-
-            if (htmlFile) {
-
-                let finalHtml = htmlFile.content
-
-                // ✅ CSS inject
-                if (cssFile) {
-                    finalHtml = finalHtml.replace(
-                        "</head>",
-                        `<style>${cssFile.content}</style></head>`
-                    )
-                }
-
-                // ✅ JS inject
-                if (jsFile) {
-                    finalHtml = finalHtml.replace(
-                        "</body>",
-                        `<script>${jsFile.content}</script></body>`
-                    )
-                }
-
-                setCode(finalHtml)
-
-            } else {
-                // ❌ fallback
-                setCode(`
-                    <html>
-                        <body style="font-family:sans-serif;text-align:center;padding-top:50px;">
-                            <h2>⚠️ Preview not available</h2>
-                            <p>No HTML file found</p>
-                            <p>👉 Try this prompt:</p>
-                            <code>Create a website using HTML CSS JS with index.html</code>
-                        </body>
-                    </html>
-                `)
+            // ✅ SAFE CSS INJECT
+            if (cssFile) {
+                finalHtml = `
+                <style>${cssFile.content}</style>
+                ${finalHtml}
+                `
             }
 
-            setMessages((prev) => [
+            // ✅ SAFE JS INJECT
+            if (jsFile) {
+                finalHtml = `
+                ${finalHtml}
+                <script>${jsFile.content}</script>
+                `
+            }
+
+            setCode(finalHtml)
+
+            setMessages(prev => [
                 ...prev,
                 { role: "user", content: prompt },
-                { role: "ai", content: "Website generated successfully 🚀" }
+                { role: "ai", content: "Website generated 🚀" }
             ])
 
             setPrompt("")
 
         } catch (err) {
-            console.log("ERROR:", err.response?.data)
-            alert(err.response?.data?.message || "API Error ❌")
+            console.log(err.response?.data)
+            alert(err.response?.data?.message || "Error ❌")
         }
 
         setLoading(false)
     }
 
+    // 🔥 FIX: USE srcDoc (IMPORTANT)
     useEffect(() => {
-        if (!iframeRef.current || !code) return
-
-        console.log("⚡ RENDERING")
-
-        const blob = new Blob([code], { type: "text/html" })
-        const url = URL.createObjectURL(blob)
-
-        iframeRef.current.src = url
-
-        return () => URL.revokeObjectURL(url)
+        if (iframeRef.current && code) {
+            iframeRef.current.srcdoc = code
+        }
     }, [code])
 
     return (
         <div className='h-screen w-screen flex bg-black text-white'>
 
-            {/* LEFT PANEL */}
             <div className='w-[350px] border-r border-white/10 flex flex-col'>
 
                 <div className='p-4 font-semibold border-b border-white/10'>
@@ -147,7 +116,6 @@ function WebsiteEditor() {
                 </div>
             </div>
 
-            {/* RIGHT PANEL */}
             <div className='flex-1 flex flex-col'>
 
                 <div className='h-12 flex items-center px-4 border-b border-white/10'>
