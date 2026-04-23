@@ -13,6 +13,9 @@ function WebsiteEditor() {
 
     const handleGenerate = async () => {
 
+        console.log("BUTTON CLICKED 🔥")
+        console.log("PROMPT:", prompt)
+
         if (!prompt.trim()) {
             alert("Enter prompt first 😅")
             return
@@ -27,29 +30,36 @@ function WebsiteEditor() {
                 { withCredentials: true }
             )
 
+            console.log("SERVER RESPONSE:", res.data)
+
             const files = res.data.files || []
 
-            const htmlFile = files.find(f => f.path.includes("html"))
-            const cssFile = files.find(f => f.path.endsWith(".css"))
-            const jsFile = files.find(f => f.path.endsWith(".js"))
+            // ✅ FIXED FILE MATCHING
+            const htmlFile = files.find(f =>
+                f.path.toLowerCase().endsWith(".html")
+            )
+
+            const cssFile = files.find(f =>
+                f.path.toLowerCase().endsWith(".css")
+            )
+
+            const jsFile = files.find(f =>
+                f.path.toLowerCase().endsWith(".js")
+            )
 
             let finalHtml = htmlFile?.content || "<h1>No HTML</h1>"
 
-            // ✅ SAFE CSS INJECT
+            // ✅ CSS inject
             if (cssFile) {
-                finalHtml = `
-                <style>${cssFile.content}</style>
-                ${finalHtml}
-                `
+                finalHtml = `<style>${cssFile.content}</style>\n${finalHtml}`
             }
 
-            // ✅ SAFE JS INJECT
+            // ✅ JS inject
             if (jsFile) {
-                finalHtml = `
-                ${finalHtml}
-                <script>${jsFile.content}</script>
-                `
+                finalHtml = `${finalHtml}\n<script>${jsFile.content}</script>`
             }
+
+            console.log("FINAL HTML:", finalHtml)
 
             setCode(finalHtml)
 
@@ -62,14 +72,14 @@ function WebsiteEditor() {
             setPrompt("")
 
         } catch (err) {
-            console.log(err.response?.data)
+            console.log("ERROR:", err.response?.data)
             alert(err.response?.data?.message || "Error ❌")
         }
 
         setLoading(false)
     }
 
-    // 🔥 FIX: USE srcDoc (IMPORTANT)
+    // ✅ FIX: use srcDoc
     useEffect(() => {
         if (iframeRef.current && code) {
             iframeRef.current.srcdoc = code
@@ -79,6 +89,7 @@ function WebsiteEditor() {
     return (
         <div className='h-screen w-screen flex bg-black text-white'>
 
+            {/* LEFT */}
             <div className='w-[350px] border-r border-white/10 flex flex-col'>
 
                 <div className='p-4 font-semibold border-b border-white/10'>
@@ -100,22 +111,30 @@ function WebsiteEditor() {
                 </div>
 
                 <div className='p-3 border-t border-white/10 flex gap-2'>
+
+                    {/* ✅ INPUT FIX */}
                     <input
                         className='flex-1 px-3 py-2 bg-white/10 rounded outline-none'
                         placeholder='Describe your website...'
                         value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
+                        onChange={(e) => {
+                            console.log("TYPING:", e.target.value)
+                            setPrompt(e.target.value)
+                        }}
                     />
 
+                    {/* ✅ BUTTON FIX */}
                     <button
-                        onClick={handleGenerate}
+                        onClick={() => handleGenerate()}
                         className='bg-white text-black px-4 rounded'
                     >
                         {loading ? "..." : <Send size={14} />}
                     </button>
+
                 </div>
             </div>
 
+            {/* RIGHT */}
             <div className='flex-1 flex flex-col'>
 
                 <div className='h-12 flex items-center px-4 border-b border-white/10'>
@@ -130,7 +149,6 @@ function WebsiteEditor() {
                     <iframe
                         ref={iframeRef}
                         className='flex-1 bg-white'
-                        sandbox='allow-scripts allow-same-origin'
                         title="preview"
                     />
                 )}
