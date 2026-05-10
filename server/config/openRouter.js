@@ -32,12 +32,11 @@ export const generateResponse =
                 role: "system",
 
                 content:
-                  "Return ONLY raw valid JSON.",
+                  "Return ONLY valid raw JSON. No markdown. No explanation.",
               },
 
               {
                 role: "user",
-
                 content: prompt,
               },
             ],
@@ -49,6 +48,20 @@ export const generateResponse =
         }
       );
 
+      if (!res.ok) {
+
+        const err =
+          await res.text();
+
+        console.log(
+          "OPENROUTER ERROR:"
+        );
+
+        console.log(err);
+
+        return null;
+      }
+
       const data =
         await res.json();
 
@@ -58,26 +71,17 @@ export const generateResponse =
 
       console.log(data);
 
-      if (
-        !data?.choices?.[0]
-          ?.message?.content
-      ) {
-
-        throw new Error(
-          "Empty AI response"
-        );
-      }
-
-      return data.choices[0]
-        .message.content;
+      return data
+        ?.choices?.[0]
+        ?.message?.content;
 
     } catch (err) {
 
       console.log(
-        "OPENROUTER ERROR:",
+        "FETCH ERROR:",
         err
       );
 
-      throw err;
+      return null;
     }
   };
