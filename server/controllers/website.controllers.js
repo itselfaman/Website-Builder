@@ -28,41 +28,46 @@ export const generateWebsite = async (req, res) => {
     // AI PROMPT
     // ============================================
     const dynamicPrompt = `
-Create a modern responsive website using HTML CSS and JavaScript.
+You are a professional frontend website generator AI.
+
+Generate ONLY valid raw JSON.
+
+RULES:
+- No markdown
+- No explanation
+- No triple backticks
+- No extra text
+- Return ONLY JSON
+- Use ONLY HTML CSS JavaScript
+- Create responsive modern UI
+- Dark modern design
+- Smooth animations
+- Use picsum.photos for demo images
+
+REQUIRED FORMAT:
+
+{
+  "files": [
+    {
+      "path": "index.html",
+      "content": "<html></html>"
+    },
+    {
+      "path": "style.css",
+      "content": "body{}"
+    },
+    {
+      "path": "script.js",
+      "content": "console.log('hi')"
+    }
+  ]
+}
 
 USER REQUEST:
 ${prompt}
 
 EXISTING CODE:
 ${existingCode || "none"}
-
-IMPORTANT:
-- Modify existing code if provided
-- Use ONLY HTML CSS JavaScript
-- Create responsive modern UI
-- Dark modern design
-- Use smooth animations
-- Use picsum.photos images
-
-Return ONLY valid JSON.
-
-FORMAT:
-{
-  "files": [
-    {
-      "path": "index.html",
-      "content": "HTML CODE"
-    },
-    {
-      "path": "style.css",
-      "content": "CSS CODE"
-    },
-    {
-      "path": "script.js",
-      "content": "JS CODE"
-    }
-  ]
-}
 `;
 
     // ============================================
@@ -130,9 +135,7 @@ FORMAT:
     // ============================================
     if (
       !parsed ||
-      !Array.isArray(
-        parsed.files
-      )
+      !parsed.files
     ) {
 
       return res.status(400).json({
@@ -319,7 +322,7 @@ export const downloadWebsite =
 
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=website-${req.params.id}.zip`
+        \`attachment; filename=website-\${req.params.id}.zip\`
       );
 
       const archive =
