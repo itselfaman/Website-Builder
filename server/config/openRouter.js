@@ -4,82 +4,80 @@ const openRouterUrl =
 const model =
   "deepseek/deepseek-chat";
 
-export const generateResponse = async (
-  prompt
-) => {
+export const generateResponse =
+  async (prompt) => {
 
-  try {
+    try {
 
-    const res = await fetch(
-      openRouterUrl,
-      {
-        method: "POST",
+      const res = await fetch(
+        openRouterUrl,
+        {
+          method: "POST",
 
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type":
-            "application/json",
-        },
+          headers: {
+            Authorization:
+              `Bearer ${process.env.OPENROUTER_API_KEY}`,
 
-        body: JSON.stringify({
-
-          model,
-
-          response_format: {
-            type: "json_object",
+            "Content-Type":
+              "application/json",
           },
 
-          messages: [
+          body: JSON.stringify({
 
-            {
-              role: "system",
+            model,
 
-              content:
-                "Return ONLY valid JSON. No markdown. No explanation.",
-            },
+            messages: [
 
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
+              {
+                role: "system",
 
-          temperature: 0.2,
+                content:
+                  "Return ONLY raw valid JSON.",
+              },
 
-          max_tokens: 1200,
-        }),
-      }
-    );
+              {
+                role: "user",
 
-    if (!res.ok) {
+                content: prompt,
+              },
+            ],
 
-      const err = await res.text();
+            temperature: 0.2,
 
-      console.log(err);
-
-      throw new Error(
-        "OpenRouter Error"
+            max_tokens: 1200,
+          }),
+        }
       );
+
+      const data =
+        await res.json();
+
+      console.log(
+        "OPENROUTER RESPONSE:"
+      );
+
+      console.log(data);
+
+      if (
+        !data?.choices?.[0]
+          ?.message?.content
+      ) {
+
+        throw new Error(
+          "Empty AI response"
+        );
+      }
+
+      return data.choices[0]
+        .message.content;
+
+    } catch (err) {
+
+      console.log(
+        "OPENROUTER ERROR:",
+        err
+      );
+
+      throw err;
     }
-
-    const data = await res.json();
-
-    console.log(
-      "OPENROUTER RESPONSE:"
-    );
-
-    console.log(data);
-
-    return data.choices?.[0]
-      ?.message?.content;
-
-  } catch (err) {
-
-    console.log(
-      "OPENROUTER ERROR:",
-      err
-    );
-
-    return null;
-  }
-};
+  };
