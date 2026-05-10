@@ -17,17 +17,37 @@
 
 // export default websiteRouter;
 
+// import express from "express";
+// import {
+//   generateWebsite,
+//   getWebsiteById,
+//   downloadWebsite,
+// } from "../controllers/website.controllers.js";
+
+// const router = express.Router();
+
+// router.post("/generate", generateWebsite);
+// router.get("/get-by-id/:id", getWebsiteById);
+// router.get("/download/:id", downloadWebsite);
+
+// export default router;
 import express from "express";
+
 import {
   generateWebsite,
   getWebsiteById,
   downloadWebsite,
+  getAll,
 } from "../controllers/website.controllers.js";
 
 const router = express.Router();
 
 router.post("/generate", generateWebsite);
+
 router.get("/get-by-id/:id", getWebsiteById);
+
 router.get("/download/:id", downloadWebsite);
+
+router.get("/get-all", getAll);
 
 export default router;

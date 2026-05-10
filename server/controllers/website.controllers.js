@@ -222,6 +222,32 @@ export const getWebsiteById = async (
 };
 
 // ============================================
+// GET ALL WEBSITES
+// ============================================
+export const getAll = async (
+  req,
+  res
+) => {
+
+  try {
+
+    const websites = await Website
+      .find()
+      .sort({ createdAt: -1 });
+
+    res.json(websites);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+// ============================================
 // DOWNLOAD WEBSITE ZIP
 // ============================================
 export const downloadWebsite = async (

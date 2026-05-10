@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
-const serverUrl = "http://localhost:5000";
+const serverUrl = "https://website-builder-1-xgq2.onrender.com";
 
 function Editor() {
   const { id } = useParams();
