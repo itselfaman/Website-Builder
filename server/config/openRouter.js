@@ -2,108 +2,83 @@ const openRouterUrl =
   "https://openrouter.ai/api/v1/chat/completions";
 
 const model =
-  "deepseek/deepseek-chat-v3-0324:free";
+  "deepseek/deepseek-chat";
 
-export const generateResponse = async (prompt) => {
+export const generateResponse = async (
+  prompt
+) => {
 
   try {
 
-    const res = await fetch(openRouterUrl, {
+    const res = await fetch(
+      openRouterUrl,
+      {
+        method: "POST",
 
-      method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type":
+            "application/json",
+        },
 
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+        body: JSON.stringify({
 
-      body: JSON.stringify({
+          model,
 
-        model: model,
-
-        messages: [
-
-          {
-            role: "system",
-
-            content: `
-You are an AI website generator.
-
-Return ONLY valid raw JSON.
-
-DO NOT:
-- use markdown
-- use triple backticks
-- explain anything
-- write extra text
-
-RESPONSE FORMAT:
-
-{
-  "files": [
-    {
-      "path": "index.html",
-      "content": "HTML CODE"
-    },
-    {
-      "path": "style.css",
-      "content": "CSS CODE"
-    },
-    {
-      "path": "script.js",
-      "content": "JS CODE"
-    }
-  ]
-}
-`,
+          response_format: {
+            type: "json_object",
           },
 
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+          messages: [
 
-        temperature: 0.3,
+            {
+              role: "system",
 
-        max_tokens: 4000,
-      }),
-    });
+              content:
+                "Return ONLY valid JSON. No markdown. No explanation.",
+            },
 
-    // ============================================
-    // ERROR HANDLING
-    // ============================================
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
+
+          temperature: 0.2,
+
+          max_tokens: 4000,
+        }),
+      }
+    );
+
     if (!res.ok) {
 
       const err = await res.text();
 
-      console.log("OPENROUTER ERROR:");
       console.log(err);
 
-      throw new Error("OpenRouter request failed");
+      throw new Error(
+        "OpenRouter Error"
+      );
     }
 
-    // ============================================
-    // RESPONSE
-    // ============================================
     const data = await res.json();
 
-    console.log("FULL OPENROUTER RESPONSE:");
-    console.log(JSON.stringify(data, null, 2));
+    console.log(
+      "OPENROUTER RESPONSE:"
+    );
 
-    const text =
-      data?.choices?.[0]?.message?.content;
+    console.log(data);
 
-    if (!text) {
-      throw new Error("No AI response");
-    }
-
-    return text;
+    return data.choices?.[0]
+      ?.message?.content;
 
   } catch (err) {
 
-    console.log("OPENROUTER CATCH ERROR:");
-    console.log(err);
+    console.log(
+      "OPENROUTER ERROR:",
+      err
+    );
 
     return null;
   }
