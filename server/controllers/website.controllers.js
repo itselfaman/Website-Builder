@@ -28,7 +28,7 @@ export const generateWebsite = async (req, res) => {
     // AI PROMPT
     // ============================================
     const dynamicPrompt = `
-Generate a complete modern website.
+Create a modern responsive website using HTML CSS and JavaScript.
 
 USER REQUEST:
 ${prompt}
@@ -38,22 +38,15 @@ ${existingCode || "none"}
 
 IMPORTANT:
 - Modify existing code if provided
-- Use HTML CSS JS only
-- Make responsive modern UI
-- Use dark modern design
-- Use animations if needed
-- Use picsum.photos for images
+- Use ONLY HTML CSS JavaScript
+- Create responsive modern UI
+- Dark modern design
+- Use smooth animations
+- Use picsum.photos images
 
 Return ONLY valid JSON.
 
-DO NOT:
-- use markdown
-- use triple backticks
-- explain anything
-- write extra text
-
 FORMAT:
-
 {
   "files": [
     {
@@ -94,13 +87,38 @@ FORMAT:
         ?.replace(/```/g, "")
         ?.trim();
 
-      parsed = JSON.parse(cleaned);
+      const start =
+        cleaned.indexOf("{");
+
+      const end =
+        cleaned.lastIndexOf("}");
+
+      if (
+        start !== -1 &&
+        end !== -1
+      ) {
+
+        const jsonString =
+          cleaned.slice(
+            start,
+            end + 1
+          );
+
+        parsed =
+          JSON.parse(jsonString);
+      }
 
     } catch (err) {
 
-      console.log("JSON ERROR:", err);
+      console.log(
+        "JSON ERROR:",
+        err
+      );
 
-      console.log("RAW RESPONSE:");
+      console.log(
+        "RAW RESPONSE:"
+      );
+
       console.log(raw);
     }
 
@@ -112,7 +130,9 @@ FORMAT:
     // ============================================
     if (
       !parsed ||
-      !Array.isArray(parsed.files)
+      !Array.isArray(
+        parsed.files
+      )
     ) {
 
       return res.status(400).json({
@@ -127,23 +147,32 @@ FORMAT:
     if (websiteId) {
 
       const existingWebsite =
-        await Website.findById(websiteId);
+        await Website.findById(
+          websiteId
+        );
 
       if (!existingWebsite) {
 
         return res.status(404).json({
-          message: "Website not found",
+          message:
+            "Website not found",
         });
       }
 
       existingWebsite.latestCode =
-        JSON.stringify(parsed.files);
+        JSON.stringify(
+          parsed.files
+        );
 
       await existingWebsite.save();
 
       return res.json({
-        websiteId: existingWebsite._id,
-        files: parsed.files,
+        websiteId:
+          existingWebsite._id,
+
+        files:
+          parsed.files,
+
         message:
           "Website updated successfully",
       });
@@ -152,20 +181,25 @@ FORMAT:
     // ============================================
     // CREATE WEBSITE
     // ============================================
-    const newWebsite = await Website.create({
+    const newWebsite =
+      await Website.create({
 
-      title: prompt.slice(0, 60),
+        title:
+          prompt.slice(0, 60),
 
-      latestCode: JSON.stringify(
-        parsed.files
-      ),
-    });
+        latestCode:
+          JSON.stringify(
+            parsed.files
+          ),
+      });
 
     return res.json({
 
-      websiteId: newWebsite._id,
+      websiteId:
+        newWebsite._id,
 
-      files: parsed.files,
+      files:
+        parsed.files,
 
       message:
         "Website created successfully",
@@ -173,7 +207,10 @@ FORMAT:
 
   } catch (err) {
 
-    console.log("SERVER ERROR:", err);
+    console.log(
+      "SERVER ERROR:",
+      err
+    );
 
     res.status(500).json({
       message: err.message,
@@ -184,126 +221,139 @@ FORMAT:
 // ============================================
 // GET WEBSITE BY ID
 // ============================================
-export const getWebsiteById = async (
-  req,
-  res
-) => {
+export const getWebsiteById =
+  async (req, res) => {
 
-  try {
+    try {
 
-    const website =
-      await Website.findById(
-        req.params.id
-      );
+      const website =
+        await Website.findById(
+          req.params.id
+        );
 
-    if (!website) {
+      if (!website) {
 
-      return res.status(404).json({
-        message: "Website not found",
+        return res.status(404).json({
+          message:
+            "Website not found",
+        });
+      }
+
+      const files =
+        JSON.parse(
+          website.latestCode || "[]"
+        );
+
+      res.json({
+        files,
+      });
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message:
+          err.message,
       });
     }
-
-    const files = JSON.parse(
-      website.latestCode || "[]"
-    );
-
-    res.json({
-      files,
-    });
-
-  } catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-      message: err.message,
-    });
-  }
-};
+  };
 
 // ============================================
 // GET ALL WEBSITES
 // ============================================
-export const getAll = async (
-  req,
-  res
-) => {
+export const getAll =
+  async (req, res) => {
 
-  try {
+    try {
 
-    const websites = await Website
-      .find()
-      .sort({ createdAt: -1 });
+      const websites =
+        await Website.find()
+          .sort({
+            createdAt: -1,
+          });
 
-    res.json(websites);
+      res.json(websites);
 
-  } catch (err) {
+    } catch (err) {
 
-    console.log(err);
+      console.log(err);
 
-    res.status(500).json({
-      message: err.message,
-    });
-  }
-};
+      res.status(500).json({
+        message:
+          err.message,
+      });
+    }
+  };
 
 // ============================================
 // DOWNLOAD WEBSITE ZIP
 // ============================================
-export const downloadWebsite = async (
-  req,
-  res
-) => {
+export const downloadWebsite =
+  async (req, res) => {
 
-  try {
+    try {
 
-    const website =
-      await Website.findById(
-        req.params.id
+      const website =
+        await Website.findById(
+          req.params.id
+        );
+
+      if (!website) {
+
+        return res.status(404).json({
+          message:
+            "Website not found",
+        });
+      }
+
+      const files =
+        JSON.parse(
+          website.latestCode || "[]"
+        );
+
+      res.setHeader(
+        "Content-Type",
+        "application/zip"
       );
 
-    if (!website) {
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename=website-${req.params.id}.zip`
+      );
 
-      return res.status(404).json({
-        message: "Website not found",
+      const archive =
+        archiver("zip", {
+          zlib: {
+            level: 9,
+          },
+        });
+
+      archive.pipe(res);
+
+      files.forEach((file) => {
+
+        archive.append(
+          file.content,
+          {
+            name:
+              file.path.replace(
+                /^\//,
+                ""
+              ),
+          }
+        );
+      });
+
+      await archive.finalize();
+
+    } catch (err) {
+
+      console.log(err);
+
+      res.status(500).json({
+        message:
+          "Download failed",
       });
     }
-
-    const files = JSON.parse(
-      website.latestCode || "[]"
-    );
-
-    res.setHeader(
-      "Content-Type",
-      "application/zip"
-    );
-
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=website-${req.params.id}.zip`
-    );
-
-    const archive = archiver("zip", {
-      zlib: { level: 9 },
-    });
-
-    archive.pipe(res);
-
-    files.forEach((file) => {
-
-      archive.append(file.content, {
-        name: file.path.replace(/^\//, ""),
-      });
-    });
-
-    await archive.finalize();
-
-  } catch (err) {
-
-    console.log(err);
-
-    res.status(500).json({
-      message: "Download failed",
-    });
-  }
-};
+  };
