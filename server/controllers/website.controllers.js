@@ -322,7 +322,7 @@ export const downloadWebsite =
 
       res.setHeader(
         "Content-Disposition",
-        \`attachment; filename=website-\${req.params.id}.zip\`
+        `attachment; filename=website-\${req.params.id}.zip`
       );
 
       const archive =
