@@ -1,8 +1,10 @@
 const openRouterUrl =
   "https://openrouter.ai/api/v1/chat/completions";
 
+// const model =
+//   "deepseek/deepseek-chat";
 const model =
-  "deepseek/deepseek-chat";
+  "mistralai/mistral-7b-instruct";
 
 export const generateResponse =
   async (prompt) => {
@@ -32,7 +34,7 @@ export const generateResponse =
                 role: "system",
 
                 content:
-                  "Return ONLY valid raw JSON. No markdown. No explanation.",
+                  "Return ONLY valid JSON. No markdown. No explanation. No backticks.",
               },
 
               {
@@ -41,9 +43,9 @@ export const generateResponse =
               },
             ],
 
-            temperature: 0.2,
+            temperature: 0.3,
 
-            max_tokens: 1200,
+            max_tokens: 2500,
           }),
         }
       );
