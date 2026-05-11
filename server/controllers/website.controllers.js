@@ -78,49 +78,66 @@ ${existingCode || "none"}
     // ============================================
     // PARSE JSON
     // ============================================
-    let parsed = null;
-
     try {
 
-      const cleaned = raw
-        ?.replace(/```json/g, "")
-        ?.replace(/```/g, "")
-        ?.trim();
+  if (!raw) {
 
-      const start =
-        cleaned.indexOf("{");
+    return res.status(400).json({
+      message:
+        "Empty AI response",
+    });
+  }
 
-      const end =
-        cleaned.lastIndexOf("}");
+  const cleaned = raw
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
 
-      if (
-        start !== -1 &&
-        end !== -1
-      ) {
+  const start =
+    cleaned.indexOf("{");
 
-        const jsonString =
-          cleaned.slice(
-            start,
-            end + 1
-          );
+  const end =
+    cleaned.lastIndexOf("}");
 
-        parsed =
-          JSON.parse(jsonString);
-      }
+  if (
+    start === -1 ||
+    end === -1
+  ) {
 
-    } catch (err) {
+    return res.status(400).json({
+      message:
+        "Invalid JSON response",
+    });
+  }
 
-      console.log(
-        "JSON ERROR:",
-        err
-      );
+  const jsonString =
+    cleaned.slice(
+      start,
+      end + 1
+    );
 
-      console.log(
-        "RAW RESPONSE:"
-      );
+  parsed =
+    JSON.parse(jsonString);
 
-      console.log(raw);
-    }
+} catch (err) {
+
+  console.log(
+    "JSON PARSE ERROR:"
+  );
+
+  console.log(err);
+
+  console.log(
+    "RAW AI RESPONSE:"
+  );
+
+  console.log(raw);
+
+  return res.status(400).json({
+    message:
+      "AI returned invalid JSON",
+  });
+}
 
     console.log("PARSED:");
     console.log(parsed);
