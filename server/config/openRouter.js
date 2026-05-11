@@ -1,78 +1,68 @@
 const openRouterUrl =
   "https://openrouter.ai/api/v1/chat/completions";
 
-const model =
-  "openai/gpt-3.5-turbo";
-
 export const generateResponse =
   async (prompt) => {
 
     try {
 
-      console.log(
-        "API KEY:",
-        process.env.OPENROUTER_API_KEY
-          ? "FOUND"
-          : "MISSING"
-      );
+      const response =
+        await fetch(
+          openRouterUrl,
+          {
+            method: "POST",
 
-      const res = await fetch(
-        openRouterUrl,
-        {
-          method: "POST",
+            headers: {
 
-          headers: {
+              Authorization:
+                `Bearer ${process.env.OPENROUTER_API_KEY}`,
 
-            Authorization:
-              `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              "Content-Type":
+                "application/json",
 
-            "Content-Type":
-              "application/json",
-          },
+              "HTTP-Referer":
+                "https://genweb-ai.onrender.com",
 
-          body: JSON.stringify({
+              "X-Title":
+                "Genweb AI",
+            },
 
-            model,
+            body: JSON.stringify({
 
-            messages: [
+              model:
+                "openai/gpt-3.5-turbo",
 
-              {
-                role: "system",
+              messages: [
 
-                content:
-                  "Return ONLY valid JSON. No markdown. No explanation.",
-              },
+                {
+                  role: "system",
 
-              {
-                role: "user",
+                  content:
+                    "Return ONLY valid JSON. No markdown. No explanation.",
+                },
 
-                content: prompt,
-              },
-            ],
+                {
+                  role: "user",
 
-            temperature: 0.2,
+                  content: prompt,
+                },
+              ],
 
-            max_tokens: 2000,
-          }),
-        }
-      );
+              temperature: 0.3,
 
-      const text =
-        await res.text();
-
-      console.log(
-        "RAW OPENROUTER RESPONSE:"
-      );
-
-      console.log(text);
-
-      if (!text) {
-
-        return null;
-      }
+              max_tokens: 2000,
+            }),
+          }
+        );
 
       const data =
-        JSON.parse(text);
+        await response.json();
+
+      console.log(
+        "OPENROUTER RESPONSE:"
+      );
+
+      console.log(data);
 
       return data
         ?.choices?.[0]
