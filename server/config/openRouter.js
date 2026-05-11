@@ -19,18 +19,12 @@ export const generateResponse =
 
               "Content-Type":
                 "application/json",
-
-              "HTTP-Referer":
-                "https://genweb-ai.onrender.com",
-
-              "X-Title":
-                "Genweb AI",
             },
 
             body: JSON.stringify({
 
               model:
-                "openai/gpt-3.5-turbo",
+                "meta-llama/llama-3.1-8b-instruct:free",
 
               messages: [
 
@@ -38,7 +32,7 @@ export const generateResponse =
                   role: "system",
 
                   content:
-                    "Return ONLY valid JSON. No markdown. No explanation.",
+                    "Return ONLY valid JSON.",
                 },
 
                 {
@@ -48,21 +42,28 @@ export const generateResponse =
                 },
               ],
 
-              temperature: 0.3,
+              temperature: 0.2,
 
-              max_tokens: 2000,
+              max_tokens: 1500,
             }),
           }
         );
 
-      const data =
-        await response.json();
+      const text =
+        await response.text();
 
       console.log(
-        "OPENROUTER RESPONSE:"
+        "RAW RESPONSE:"
       );
 
-      console.log(data);
+      console.log(text);
+
+      if (!text) {
+        return null;
+      }
+
+      const data =
+        JSON.parse(text);
 
       return data
         ?.choices?.[0]
