@@ -28,37 +28,36 @@ export const generateWebsite = async (req, res) => {
     // AI PROMPT
     // ============================================
     const dynamicPrompt = `
-You are a professional frontend website generator AI.
+You are a professional frontend AI generator.
 
-Generate ONLY valid raw JSON.
+Generate ONLY valid JSON.
+
+IMPORTANT:
+- Detect framework from user prompt.
+- Create complete folder structure.
+- Include all required files.
+
+Frameworks supported:
+- HTML CSS JavaScript
+- React
+- Vue
+- Angular
+- Svelte
+- Next.js
+- Nuxt.js
 
 RULES:
 - No markdown
 - No explanation
-- No triple backticks
-- No extra text
+- No backticks
 - Return ONLY JSON
-- Use ONLY HTML CSS JavaScript
-- Create responsive modern UI
-- Dark modern design
-- Smooth animations
-- Use picsum.photos for demo images
 
-REQUIRED FORMAT:
-
+FORMAT:
 {
   "files": [
     {
-      "path": "index.html",
-      "content": "<html></html>"
-    },
-    {
-      "path": "style.css",
-      "content": "body{}"
-    },
-    {
-      "path": "script.js",
-      "content": "console.log('hi')"
+      "path": "src/App.jsx",
+      "content": "code"
     }
   ]
 }
