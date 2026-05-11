@@ -1,8 +1,6 @@
 const openRouterUrl =
   "https://openrouter.ai/api/v1/chat/completions";
 
-// const model =
-//   "deepseek/deepseek-chat";
 const model =
   "mistralai/mistral-7b-instruct";
 
@@ -11,12 +9,20 @@ export const generateResponse =
 
     try {
 
+      console.log(
+        "API KEY:",
+        process.env.OPENROUTER_API_KEY
+          ? "FOUND"
+          : "MISSING"
+      );
+
       const res = await fetch(
         openRouterUrl,
         {
           method: "POST",
 
           headers: {
+
             Authorization:
               `Bearer ${process.env.OPENROUTER_API_KEY}`,
 
@@ -34,55 +40,51 @@ export const generateResponse =
                 role: "system",
 
                 content:
-                  "Return ONLY valid JSON. No markdown. No explanation. No backticks.",
+                  "Return ONLY valid JSON. No markdown. No explanation.",
               },
 
               {
                 role: "user",
+
                 content: prompt,
               },
             ],
 
-            temperature: 0.3,
+            temperature: 0.2,
 
-            max_tokens: 2500,
+            max_tokens: 2000,
           }),
         }
       );
 
-      if (!res.ok) {
+      const text =
+        await res.text();
 
-        const err =
-          await res.text();
+      console.log(
+        "RAW OPENROUTER RESPONSE:"
+      );
 
-        console.log(
-          "OPENROUTER ERROR:"
-        );
+      console.log(text);
 
-        console.log(err);
+      if (!text) {
 
         return null;
       }
 
       const data =
-        await res.json();
-
-      console.log(
-        "OPENROUTER RESPONSE:"
-      );
-
-      console.log(data);
+        JSON.parse(text);
 
       return data
         ?.choices?.[0]
-        ?.message?.content;
+        ?.message?.content || null;
 
     } catch (err) {
 
       console.log(
-        "FETCH ERROR:",
-        err
+        "OPENROUTER ERROR:"
       );
+
+      console.log(err);
 
       return null;
     }
