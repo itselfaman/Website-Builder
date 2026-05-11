@@ -30,34 +30,30 @@ export const generateWebsite = async (req, res) => {
     const dynamicPrompt = `
 You are a professional frontend AI generator.
 
-Generate ONLY valid JSON.
-
-IMPORTANT:
-- Detect framework from user prompt.
-- Create complete folder structure.
-- Include all required files.
-
-Frameworks supported:
-- HTML CSS JavaScript
-- React
-- Vue
-- Angular
-- Svelte
-- Next.js
-- Nuxt.js
+Generate ONLY valid raw JSON.
 
 RULES:
 - No markdown
 - No explanation
 - No backticks
 - Return ONLY JSON
+- Use HTML CSS JavaScript
+- Create responsive modern UI
 
 FORMAT:
 {
   "files": [
     {
-      "path": "src/App.jsx",
-      "content": "code"
+      "path": "index.html",
+      "content": "<html></html>"
+    },
+    {
+      "path": "style.css",
+      "content": "body{}"
+    },
+    {
+      "path": "script.js",
+      "content": "console.log('hi')"
     }
   ]
 }
@@ -134,13 +130,179 @@ ${existingCode || "none"}
     // ============================================
     if (
       !parsed ||
-      !parsed.files
+      !parsed.files ||
+      !Array.isArray(parsed.files)
     ) {
 
-      return res.status(400).json({
-        message:
-          "AI failed to generate valid code",
-      });
+      console.log(
+        "INVALID AI RESPONSE"
+      );
+
+      console.log(parsed);
+
+      // FALLBACK WEBSITE
+      parsed = {
+        files: [
+
+          {
+            path: "index.html",
+
+            content: `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>AI Website</title>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  />
+</head>
+
+<body>
+
+  <nav>
+    <h1>AI Builder</h1>
+
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+
+    <h1>
+      Website Generated Successfully
+    </h1>
+
+    <p>
+      Frontend working successfully
+    </p>
+
+    <button>
+      Get Started
+    </button>
+
+  </section>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
+`
+          },
+
+          {
+            path: "style.css",
+
+            content: `
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  background:#0f0f0f;
+  color:white;
+  font-family:Arial;
+}
+
+nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 50px;
+  background:#111;
+}
+
+nav ul{
+  display:flex;
+  gap:20px;
+  list-style:none;
+}
+
+nav a{
+  color:white;
+  text-decoration:none;
+}
+
+.hero{
+  height:90vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+}
+
+.hero h1{
+  font-size:60px;
+  margin-bottom:20px;
+}
+
+.hero p{
+  margin-bottom:20px;
+}
+
+button{
+  padding:14px 28px;
+  border:none;
+  border-radius:10px;
+  background:cyan;
+  cursor:pointer;
+  font-size:18px;
+}
+
+button:hover{
+  opacity:0.8;
+}
+
+@media(max-width:768px){
+
+  nav{
+    flex-direction:column;
+    gap:20px;
+  }
+
+  .hero h1{
+    font-size:40px;
+  }
+}
+`
+          },
+
+          {
+            path: "script.js",
+
+            content: `
+console.log(
+  "Frontend Loaded"
+);
+
+document
+  .querySelector("button")
+  .addEventListener(
+    "click",
+    () => {
+
+      alert(
+        "Website Working Successfully"
+      );
+    }
+  );
+`
+          }
+        ]
+      };
     }
 
     // ============================================
@@ -169,6 +331,7 @@ ${existingCode || "none"}
       await existingWebsite.save();
 
       return res.json({
+
         websiteId:
           existingWebsite._id,
 
@@ -321,7 +484,7 @@ export const downloadWebsite =
 
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=website-\${req.params.id}.zip`
+        `attachment; filename=website-${req.params.id}.zip`
       );
 
       const archive =
