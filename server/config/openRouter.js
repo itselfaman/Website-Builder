@@ -2,7 +2,7 @@ const openRouterUrl =
   "https://openrouter.ai/api/v1/chat/completions";
 
 const model =
-  "mistralai/mistral-7b-instruct";
+  "openai/gpt-3.5-turbo";
 
 export const generateResponse =
   async (prompt) => {
